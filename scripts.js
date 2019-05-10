@@ -74,7 +74,7 @@ $(function() {
 
       if(e.type == 'touchmove') {
 
-        wheelDelta = (slidePages.touchStartY < e.touches[0].clientY)
+        var wheelDelta = (slidePages.touchStartY < e.touches[0].clientY)
           ?  200  // up
           : -200; // down
 
