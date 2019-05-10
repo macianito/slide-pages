@@ -4,13 +4,11 @@ $(function() {
 
     slidePages.tolerance = 0;
 
-    slidePages.circularScroll = false;
+    slidePages.circularScroll = true;
 
     // directions
     slidePages.directionUp = -1;
     slidePages.directionDown = 1;
-
-    slidePages.inc = 31; // animation step size in pixels
 
     slidePages.numAnchors = $('[data-anchor]').length;
 
@@ -44,8 +42,6 @@ $(function() {
     slidePages.currentAnchor = 0;
 
     setPageScrollTop(0);
-
-    slidePages.currentTop = getPageScrollTop();
 
 
     slidePages.touchStartY = 0;
@@ -107,60 +103,36 @@ $(function() {
       menuAnchor.addClass('selected');
     }
 
-    function goToAnchor(num, tolerance, speed) { // https://css-tricks.com/snippets/jquery/smooth-scrolling/
+    function goToAnchor(num, tolerance) { // https://css-tricks.com/snippets/jquery/smooth-scrolling/
 
       if(!slidePages.circularScroll && (num < 0 || num > slidePages.numAnchors - 1)) { // desactiva moviment circular
         return false; // disable circular scroll
       }
 
-      disableEvents();
-
-      var direction = (num > slidePages.currentAnchor) ? slidePages.directionDown : slidePages.directionUp;
+      disableEvents(); // disable events while scrolling
 
       if(num < 0) {
         num = slidePages.numAnchors - 1;
-        direction = -direction;
       } else if(num >= slidePages.numAnchors ) {
         num = 0;
-        direction = -direction;
       }
 
-
-      var currentPos = getPageScrollTop();
-      var pos = slidePages.anchorPositions[num] + tolerance;
+      
+      var top = slidePages.anchorPositions[num] + tolerance;
 
       slidePages.currentAnchor = num; // store current anchor
 
-      var inc = slidePages.inc * direction;
-
       selectMenuAnchor($('.menu-anchor:eq(' + num + ')', slidePages.fullPageMenu));
 
-
-      animation(function() { // animation
-
-        slidePages.currentTop += inc;
-
-        if(Math.abs(pos - slidePages.currentTop) < Math.abs(inc)) {
-          slidePages.currentTop = pos; // when the step size is larger than the distance needed to reach the end position
-        }
-
-        setPageScrollTop(slidePages.currentTop);
-
-      }, function() { // condition
-
-        return  (inc > 0)
-          ? slidePages.currentTop >= pos
-          : slidePages.currentTop <= pos;
-
-
-      }, function() { // callback
-
-        enableEvents();
-
-      }, speed);
-
+      setPageScrollTop(top);
 
     }
+
+    $('#slidepages').on(transitionEvent, function(e) {
+      
+      enableEvents();
+
+    });
 
 
     function getPageScrollTop() {
@@ -171,21 +143,33 @@ $(function() {
       $('#slidepages').css('top', -pos + 'px');
     }
 
-    function animation(animation, cond, callback, speed) {
-
-      var interval = setInterval(function() {
-        if(!cond()) {
-          animation();
-        } else {
-          clearInterval(interval);
-          callback();
-        }
-      }, speed || 10);
-
-    }
 
 
 });
+
+/*--------------------------------------------------------------
+  # handle transition events
+--------------------------------------------------------------*/
+
+/* From Modernizr */ // https://davidwalsh.name/css-animation-callback
+function whichTransitionEvent(){
+  var t;
+  var el = document.createElement('fakeelement');
+  var transitions = {
+    'transition':'transitionend',
+    'OTransition':'oTransitionEnd',
+    'MozTransition':'transitionend',
+    'WebkitTransition':'webkitTransitionEnd'
+  }
+
+  for(t in transitions){
+    if(el.style[t] !== undefined) {
+      return transitions[t];
+    }
+  }
+}
+
+var transitionEvent = whichTransitionEvent();
 
 // check for tablet or mobile device
 function isMobile() {
