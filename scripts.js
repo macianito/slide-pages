@@ -6,6 +6,8 @@ $(function() {
 
     slidePages.circularScroll = true;
 
+    slidePages.isChanging = false;
+
     // directions
     slidePages.directionUp = -1;
     slidePages.directionDown = 1;
@@ -22,7 +24,7 @@ $(function() {
 
     slidePages.fullPageMenu.on('click', '.menu-anchor', function() {
 
-      goToAnchor($(this).data('menu-anchor'), slidePages.tolerance, 3);
+      goToAnchor($(this).data('menu-anchor'), slidePages.tolerance);
 
     });
 
@@ -59,12 +61,21 @@ $(function() {
 
     function disableEvents() {
       window.removeEventListener(isEventSupported('mousewheel') ? "mousewheel" : "wheel", handleWheelEvent);
-      window.removeEventListener("touchmove", handleWheelEvent, {passive: true});
+      window.removeEventListener("touchmove", handleWheelEvent);
     }
 
 
 
     function handleWheelEvent(e) {
+
+      //disableEvents(); // disable events while scrolling
+
+      // already doing it or last/first page, staph plz
+		  if (slidePages.isChanging) {
+			  return;
+		  }
+
+      slidePages.isChanging = true;
 
       var direction = 0; // 1 avall -1 amunt
 
@@ -108,8 +119,7 @@ $(function() {
       if(!slidePages.circularScroll && (num < 0 || num > slidePages.numAnchors - 1)) { // desactiva moviment circular
         return false; // disable circular scroll
       }
-
-      disableEvents(); // disable events while scrolling
+      
 
       if(num < 0) {
         num = slidePages.numAnchors - 1;
@@ -129,8 +139,10 @@ $(function() {
     }
 
     $('#slidepages').on(transitionEvent, function(e) {
-      
-      enableEvents();
+      setTimeout(function() {
+        slidePages.isChanging = false;
+        //enableEvents();
+      }, 700);
 
     });
 
